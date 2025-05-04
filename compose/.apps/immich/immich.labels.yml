@@ -1,0 +1,12 @@
+services:
+  immich:
+    labels:
+      com.dockstarter.appinfo.deprecated: "false"
+      com.dockstarter.appinfo.description: "High performance self-hosted photo and video management solution"
+      com.dockstarter.appinfo.nicename: "Immich"
+      com.dockstarter.appvars.immich_container_name: "immich_server"
+      com.dockstarter.appvars.immich_enabled: "false"
+      com.dockstarter.appvars.immich_network_mode: ""
+      com.dockstarter.appvars.immich_port_2283: "2283"
+      com.dockstarter.appvars.immich_restart: "always"
+      com.dockstarter.appvars.immich_tag: "latest"

@@ -1,0 +1,4 @@
+services:
+  immich:
+    ports:
+      - ${IMMICH_PORT_2283}:2283

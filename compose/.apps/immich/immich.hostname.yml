@@ -1,0 +1,3 @@
+services:
+  immich:
+    hostname: ${DOCKER_HOSTNAME}

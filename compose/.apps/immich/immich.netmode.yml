@@ -1,0 +1,3 @@
+services:
+  immich:
+    network_mode: ${IMMICH_NETWORK_MODE}
