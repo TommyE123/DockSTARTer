@@ -1,0 +1,35 @@
+# =============================================================================
+# File: .github/workflows/bats.yml
+# Description:
+#   GitHub Actions workflow to run all Bats test files located in the .tests/scripts/ directory.
+
+# Triggers:
+#   - On push events to any branch (customize if needed)
+#   - On pull requests to any branch (customize if needed)
+#
+# Usage:
+#   Place your `.bats` test files under `.tests/scripts/`
+# =============================================================================
+
+name: Bats Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  my_test:
+    runs-on: ubuntu-latest
+    name: Install Bats and bats libs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup Bats and bats libs
+        id: setup-bats
+        uses: bats-core/bats-action@42fcc8700f773c075a16a90eb11674c0318ad507 # 3.0.1
+      - name: Script Tests
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        run: bats .tests/scripts/
