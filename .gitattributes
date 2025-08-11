@@ -4,5 +4,5 @@
 **/*.migrate       linguist-language=Shell
 
 # Environment files
-**/.env            linguist-language=Shell
-**/.env.*          linguist-language=Shell
+#**/.env            linguist-language=Shell
+#**/.env.*          linguist-language=Shell
