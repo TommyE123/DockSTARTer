@@ -1,6 +1,6 @@
 # Overrides for non-standard formats
 **/.dialogrc       linguist-language=Text
-**/.folders        linguist-language=Text
+**/*.folders       linguist-language=Text
 **/*.migrate       linguist-language=Text
 
 # Environment files
