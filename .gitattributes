@@ -1,8 +1,40 @@
+# Auto detect text files and perform LF normalization
+*          text=auto
+
+#
+# The above will handle all files NOT found below
+#
+
 # Overrides for non-standard formats
 **/.dialogrc       linguist-language=Shell
 **/*.folders       linguist-language=Shell
 **/*.migrate       linguist-language=Shell
 
 # Environment files
-#**/.env            linguist-language=Shell
-#**/.env.*          linguist-language=Shell
+**/.env            linguist-language=Shell
+**/.env.*          linguist-language=Shell
+
+# Configs
+.editorconfig     text
+*.env             text
+
+# Documents
+
+*.md       text diff=markdown
+*.txt      text
+
+
+# Graphics
+*.png      binary
+*.ico      binary
+
+# Scripts
+*.sh       text eol=lf
+
+# Serialisation
+*.json     text
+*.yml      text
+
+# Exclude files from exporting
+.gitattributes export-ignore
+.gitignore     export-ignore
