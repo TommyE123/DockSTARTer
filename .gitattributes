@@ -1,40 +1,14 @@
-# Auto detect text files and perform LF normalization
-*          text=auto
+# Auto detect text files and normalize to LF
+* text=auto eol=lf
 
-#
-# The above will handle all files NOT found below
-#
+# Graphics (always binary)
+*.png binary
+*.ico binary
 
-# Overrides for non-standard formats
-**/.dialogrc       linguist-language=Shell
-**/*.folders       linguist-language=Shell
-**/*.migrate       linguist-language=Shell
+# Shell-related formats (for GitHub's Linguist)
+.dialogrc linguist-language=Shell
+*.folders linguist-language=Shell
+*.migrate linguist-language=Shell
 
-# Environment files
-.env            linguist-language=Shell
-.env.*          linguist-language=Shell
-
-# Configs
-.editorconfig     text
-*.env             text
-
-# Documents
-
-*.md       text diff=markdown
-*.txt      text
-
-
-# Graphics
-*.png      binary
-*.ico      binary
-
-# Scripts
-*.sh       text eol=lf
-
-# Serialisation
-*.json     text
-*.yml      text
-
-# Exclude files from exporting
-.gitattributes export-ignore
-.gitignore     export-ignore
+# Markdown files
+*.md diff=markdown
