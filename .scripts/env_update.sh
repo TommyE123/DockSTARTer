@@ -3,6 +3,10 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 env_update() {
+    if [[ -z ${PROCESS_ENV_UPDATE} ]]; then
+        # Env files have already been updated, nothing to do
+        return
+    fi
     local ENV_LINES_FILE
     ENV_LINES_FILE=$(mktemp -t "${APPLICATION_NAME}.${FUNCNAME[0]}.ENV_LINES_FILE.XXXXXXXXXX")
     run_script 'appvars_lines' "" > "${ENV_LINES_FILE}"
@@ -26,12 +30,12 @@ env_update() {
         )
     done
     rm -f "${ENV_LINES_FILE}" ||
-        warn "Failed to remove temporary ${C["File"]}.env${NC} update file.\nFailing command: ${C["FailingCommand"]}rm -f \"${ENV_LINES_FILE}\""
+        warn "Failed to remove temporary '${C["File"]}.env${NC}' update file.\nFailing command: ${C["FailingCommand"]}rm -f \"${ENV_LINES_FILE}\""
 
     local MKTEMP_ENV_UPDATED
     MKTEMP_ENV_UPDATED=$(mktemp -t "${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_ENV_UPDATED.XXXXXXXXXX") ||
-        fatal "Failed to create temporary update ${C["File"]}.env${NC} file.\nFailing command: ${C["FailingCommand"]}mktemp -t \"${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_ENV_UPDATED.XXXXXXXXXX\""
-    printf '%s\n' "${UPDATED_ENV_LINES[@]}" > "${MKTEMP_ENV_UPDATED}" || fatal "Failed to write temporary ${C["File"]}.env${NC} update file."
+        fatal "Failed to create temporary update '${C["File"]}.env${NC}' file.\nFailing command: ${C["FailingCommand"]}mktemp -t \"${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_ENV_UPDATED.XXXXXXXXXX\""
+    printf '%s\n' "${UPDATED_ENV_LINES[@]}" > "${MKTEMP_ENV_UPDATED}" || fatal "Failed to write temporary '${C["File"]}.env${NC}' update file."
     cp -f "${MKTEMP_ENV_UPDATED}" "${COMPOSE_ENV}" ||
         fatal "Failed to copy file.\nFailing command: ${C["FailingCommand"]}cp -f \"${MKTEMP_ENV_UPDATED}\" \"${COMPOSE_ENV}\""
     rm -f "${MKTEMP_ENV_UPDATED}" ||
@@ -54,9 +58,9 @@ env_update() {
             )
             local MKTEMP_APP_ENV_UPDATED
             MKTEMP_APP_ENV_UPDATED=$(mktemp -t "${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_APP_ENV_UPDATED.XXXXXXXXXX") ||
-                fatal "Failed to create temporary update ${C["File"]}${appname}.env${NC} file.\nFailing command: ${C["FailingCommand"]}mktemp -t \"${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_APP_ENV_UPDATED.XXXXXXXXXX\"${NC}"
+                fatal "Failed to create temporary update '${C["File"]}.env.app.${appname}${NC}' file.\nFailing command: ${C["FailingCommand"]}mktemp -t \"${APPLICATION_NAME}.${FUNCNAME[0]}.MKTEMP_APP_ENV_UPDATED.XXXXXXXXXX\"${NC}"
             printf '%s\n' "${UPDATED_APP_ENV_LINES[@]}" > "${MKTEMP_APP_ENV_UPDATED}" ||
-                fatal "Failed to write temporary ${C["File"]}${appname}.env${NC} update file."
+                fatal "Failed to write temporary '${C["File"]}.env.app.${appname}${NC}' update file."
             cp -f "${MKTEMP_APP_ENV_UPDATED}" "${APP_ENV_FILE}" ||
                 fatal "Failed to copy file.\nFailing command: ${C["FailingCommand"]}cp -f \"${MKTEMP_APP_ENV_UPDATED}\" \"${APP_ENV_FILE}\""
             rm -f "${MKTEMP_APP_ENV_UPDATED}" ||
@@ -67,6 +71,7 @@ env_update() {
 
     #run_script 'env_sanitize'
     info "Environment file update complete."
+    declare -gx PROCESS_ENV_UPDATE=''
 }
 
 test_env_update() {

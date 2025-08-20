@@ -9,17 +9,16 @@ app_instance_file() {
     # app_instance_file "radarr" "*.labels.yml" will return a string similar to "/home/user/.docker/compose/.instances/radarr/radarr.labels.yml"
     # If the file does not exist, it is created from the matching file in the "templates" folder.
 
-    local appname=${1:-}
+    local -l appname=${1:-}
     local FilenameTemplate=${2:-}
-    local appname=${appname,,}
 
     if [[ ! -d ${INSTANCES_FOLDER} ]]; then
         mkdir -p "${INSTANCES_FOLDER}" ||
-            fatal "Failed to create folder ${C["Folder"]}${INSTANCES_FOLDER}${NC}. Failing command: mkdir -p \"${INSTANCES_FOLDER}\""
+            fatal "Failed to create folder '${C["Folder"]}${INSTANCES_FOLDER}${NC}'. Failing command: mkdir -p \"${INSTANCES_FOLDER}\""
         run_script 'set_permissions' "${INSTANCES_FOLDER}"
     fi
 
-    local baseapp
+    local -l baseapp
     baseapp="$(run_script 'appname_to_baseappname' "${appname}")"
 
     local TemplateFolder="${TEMPLATES_FOLDER}/${baseapp}"
@@ -29,6 +28,8 @@ app_instance_file() {
     local TemplateFile="${TemplateFolder}/${FilenameTemplate//"*"/"${baseapp}"}"
     local InstanceTemplateFile="${InstanceTemplateFolder}/${FilenameTemplate//"*"/"${appname}"}"
     local InstanceFile="${InstanceFolder}/${FilenameTemplate//"*"/"${appname}"}"
+
+    echo "${InstanceFile}"
 
     if [[ ! -d ${TemplateFolder} ]]; then
         # Template folder doesn't exist, remove any instance folders associated with it and return
@@ -54,8 +55,6 @@ app_instance_file() {
         return
     fi
 
-    echo "${InstanceFile}"
-
     if [[ -f ${InstanceFile} && -f ${InstanceTemplateFile} ]] && cmp -s "${TemplateFile}" "${InstanceTemplateFile}"; then
         # The instance file exists, and the template file has not changed, nothing to do.
         return
@@ -66,7 +65,7 @@ app_instance_file() {
     if [[ ! -d ${InstanceFolder} ]]; then
         # Create the folder to place the instance file in
         mkdir -p "${InstanceFolder}" ||
-            fatal "Failed to create folder ${C["Folder"]}${InstanceFolder}${NC}. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceFolder}\""
+            fatal "Failed to create folder '${C["Folder"]}${InstanceFolder}${NC}'. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceFolder}\""
         run_script 'set_permissions' "${InstanceFolder}"
     fi
 
@@ -86,7 +85,7 @@ app_instance_file() {
     if [[ ! -d ${InstanceTemplateFolder} ]]; then
         # Create the folder to place the copy of the template file in
         mkdir -p "${InstanceTemplateFolder}" ||
-            fatal "Failed to create folder ${C["Folder"]}${InstanceTemplateFolder}${NC}. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceTemplateFolder}\""
+            fatal "Failed to create folder '${C["Folder"]}${InstanceTemplateFolder}${NC}'. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceTemplateFolder}\""
         run_script 'set_permissions' "${InstanceTemplateFolder}"
     fi
 

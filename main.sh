@@ -11,6 +11,9 @@ declare -rx TARGET_BRANCH='main'
 export LC_ALL=C
 export PROMPT="CLI"
 export MENU=false
+declare -x PROCESS_APPVARS_CREATE_ALL=1
+declare -x PROCESS_ENV_UPDATE=1
+declare -x PROCESS_YML_MERGE=1
 
 # Script Information
 # https://stackoverflow.com/questions/59895/get-the-source-directory-of-a-bash-script-from-within-the-script-itself/246128#246128
@@ -128,6 +131,8 @@ declare -Agr C=( # Pre-defined colors
     ["UserCommand"]="${F[Y]}${BD}"
     ["Var"]="${F[M]}"
     ["Version"]="${F[C]}"
+    ["Yes"]="${F[G]}"
+    ["No"]="${F[R]}"
 )
 
 DIALOG=$(command -v dialog) || true
@@ -349,8 +354,16 @@ run_script_dialog() {
     if use_dialog_box; then
         # Using the GUI, pipe output to a dialog box
         SubTitle="$(strip_ansi_colors "${SubTitle}")"
-        run_script "${SCRIPTSNAME}" "$@" |& dialog_pipe "${Title}" "${SubTitle}" "${TimeOut}"
-        return "${PIPESTATUS[0]}"
+        coproc {
+            dialog_pipe "${Title}" "${SubTitle}" "${TimeOut}"
+        }
+        local -i DialogBox_PID=${COPROC_PID}
+        local -i DialogBox_FD="${COPROC[1]}"
+        local -i result=0
+        run_script "${SCRIPTSNAME}" "$@" >&${DialogBox_FD} 2>&1 || result=$?
+        exec {DialogBox_FD}<&-
+        wait ${DialogBox_PID}
+        return ${result}
     else
         run_script "${SCRIPTSNAME}" "$@"
         return
@@ -986,7 +999,7 @@ main() {
         fi
     else
         if ! check_repo; then
-            warn "Attempting to clone ${APPLICATION_NAME} repo to ${C["Folder"]}'${DETECTED_HOMEDIR}/.docker${NC}' location."
+            warn "Attempting to clone ${APPLICATION_NAME} repo to '${C["Folder"]}${DETECTED_HOMEDIR}/.docker${NC}' location."
             git clone "${APPLICATION_REPO}" "${DETECTED_HOMEDIR}/.docker" || fatal "Failed to clone ${APPLICATION_NAME} repo.\nFailing command: ${C["FailingCommand"]}git clone \"${APPLICATION_REPO}\" \"${DETECTED_HOMEDIR}/.docker\""
             notice "Performing first run install."
             exec bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-fvi"
@@ -1000,7 +1013,7 @@ main() {
         if ds_update_available; then
             warn "${APPLICATION_NAME} [${C["Version"]}${APPLICATION_VERSION}${NC}]"
             warn "An update to ${APPLICATION_NAME} is available."
-            warn "Run '${C["UserCommand"]}${APPLICATION_COMMAND} -u${NC}' to update to version ${C["Version"]}$(ds_version "${Branch}")${NC}."
+            warn "Run '${C["UserCommand"]}${APPLICATION_COMMAND} -u${NC}' to update to version '${C["Version"]}$(ds_version "${Branch}")${NC}'."
         else
             info "${APPLICATION_NAME} [${C["Version"]}${APPLICATION_VERSION}${NC}]"
         fi
@@ -1010,11 +1023,11 @@ main() {
             MainBranch="${SOURCE_BRANCH}"
         fi
         warn "${APPLICATION_NAME} branch '${C["Branch"]}${Branch}${NC}' appears to no longer exist."
-        warn "${APPLICATION_NAME} is currently on version ${C["Version"]}$(ds_version)${NC}."
+        warn "${APPLICATION_NAME} is currently on version '${C["Version"]}$(ds_version)${NC}'."
         if ! ds_branch_exists "${MainBranch}"; then
             error "${APPLICATION_NAME} does not appear to have a '${C["Branch"]}${TARGET_BRANCH}${NC}' or '${C["Branch"]}${SOURCE_BRANCH}${NC}' branch."
         else
-            warn "Run '${C["UserCommand"]}${APPLICATION_COMMAND} -u ${MainBranch}${NC}' to update to the latest stable release ${C["Version"]}$(ds_version "${MainBranch}")${NC}."
+            warn "Run '${C["UserCommand"]}${APPLICATION_COMMAND} -u ${MainBranch}${NC}' to update to the latest stable release '${C["Version"]}$(ds_version "${MainBranch}")${NC}'."
         fi
     fi
     # Apply the GUI theme
@@ -1083,34 +1096,34 @@ main() {
                 ;;
             theme-shadow)
                 notice "Turning on GUI shadows."
-                run_script 'env_set' Shadow yes "${MENU_INI_FILE}"
+                run_script 'config_set' Shadow yes "${MENU_INI_FILE}"
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned on shadows" "${APPLICATION_COMMAND} --theme-shadow"
                 fi
                 ;;
             theme-no-shadow)
-                run_script 'env_set' Shadow no "${MENU_INI_FILE}"
+                run_script 'config_set' Shadow no "${MENU_INI_FILE}"
                 notice "Turning off GUI shadows."
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned off shadows" "${APPLICATION_COMMAND} --theme-no-shadow"
                 fi
                 ;;
             theme-scrollbar)
-                run_script 'env_set' Scrollbar yes "${MENU_INI_FILE}"
+                run_script 'config_set' Scrollbar yes "${MENU_INI_FILE}"
                 notice "Turning on GUI scrollbars."
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned on scrollbars" "${APPLICATION_COMMAND} --theme-scrollbar"
                 fi
                 ;;
             theme-no-scrollbar)
-                run_script 'env_set' Scrollbar no "${MENU_INI_FILE}"
+                run_script 'config_set' Scrollbar no "${MENU_INI_FILE}"
                 notice "Turning off GUI scrollbars."
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned off scrollbars" "${APPLICATION_COMMAND} --theme-no-scrollbar"
                 fi
                 ;;
             theme-lines)
-                run_script 'env_set' LineCharacters yes "${MENU_INI_FILE}"
+                run_script 'config_set' LineCharacters yes "${MENU_INI_FILE}"
                 notice "Turning on GUI line drawing characters."
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned on line drawing" "${APPLICATION_COMMAND} --theme-lines"
@@ -1118,13 +1131,13 @@ main() {
                 ;;
             theme-no-lines)
                 notice "Turning off GUI line drawing characters."
-                run_script 'env_set' LineCharacters no "${MENU_INI_FILE}"
+                run_script 'config_set' LineCharacters no "${MENU_INI_FILE}"
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned off line drawing" "${APPLICATION_COMMAND} --theme-no-lines"
                 fi
                 ;;
             theme-borders)
-                run_script 'env_set' Borders yes "${MENU_INI_FILE}"
+                run_script 'config_set' Borders yes "${MENU_INI_FILE}"
                 notice "Turning on GUI borders."
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned on borders" "${APPLICATION_COMMAND} --theme-borders"
@@ -1132,7 +1145,7 @@ main() {
                 ;;
             theme-no-borders)
                 notice "Turning off GUI borders."
-                run_script 'env_set' Borders no "${MENU_INI_FILE}"
+                run_script 'config_set' Borders no "${MENU_INI_FILE}"
                 if use_dialog_box; then
                     run_script 'menu_dialog_example' "Turned off borders" "${APPLICATION_COMMAND} --theme-no-borders"
                 fi

@@ -16,11 +16,11 @@ menu_config_vars() {
     while true; do
         if [[ -n ${CurrentGlobalEnvFile-} ]]; then
             rm -f "${CurrentGlobalEnvFile}" ||
-                warn "Failed to remove temporary ${C["File"]}.env${NC} file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentGlobalEnvFile}\""
+                warn "Failed to remove temporary '${C["File"]}.env${NC}' file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentGlobalEnvFile}\""
         fi
         if [[ -n ${CurrentAppEnvFile-} ]]; then
             rm -f "${CurrentAppEnvFile}" ||
-                warn "Failed to remove temporary ${C["File"]}${appname}.env${NC} file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentAppEnvFile}\""
+                warn "Failed to remove temporary '${C["File"]}.env.app.${appname}${NC}' file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentAppEnvFile}\""
         fi
         local DefaultGlobalEnvFile=''
         local DefaultAppEnvFile=''
@@ -191,6 +191,11 @@ menu_config_vars() {
                         local Question="Do you really want to delete ${DC[Highlight]}${CleanVarName}${DC[NC]}?"
                         if run_script 'question_prompt' N "${DialogHeading}\n\n${Question}\n" "Delete Variable" "" "Delete" "Back"; then
                             DialogHeading="$(run_script 'menu_heading' "${APPNAME-}" "${VarName}")"
+                            coproc {
+                                dialog_pipe "${DC["TitleSuccess"]}Deleting Variable" "${DialogHeading}" "${DIALOGTIMEOUT}"
+                            }
+                            local -i DialogBox_PID=${COPROC_PID}
+                            local -i DialogBox_FD="${COPROC[1]}"
                             {
                                 run_script 'env_delete' "${VarName}"
                                 if [[ -n ${APPNAME-} ]]; then
@@ -207,7 +212,9 @@ menu_config_vars() {
                                     run_script 'env_sanitize'
                                     run_script 'env_update'
                                 fi
-                            } |& dialog_pipe "${DC["TitleSuccess"]}Deleting Variable" "${DialogHeading}" "${DIALOGTIMEOUT}"
+                            } >&${DialogBox_FD} 2>&1
+                            exec {DialogBox_FD}<&-
+                            wait ${DialogBox_PID}
                             break
                         fi
                     fi
@@ -227,11 +234,11 @@ menu_config_vars() {
     done
     if [[ -n ${CurrentGlobalEnvFile-} ]]; then
         rm -f "${CurrentGlobalEnvFile}" ||
-            warn "Failed to remove temporary ${C["File"]}.env${NC} file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentGlobalEnvFile}\""
+            warn "Failed to remove temporary '${C["File"]}.env${NC}' file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentGlobalEnvFile}\""
     fi
     if [[ -n ${CurrentAppEnvFile-} ]]; then
         rm -f "${CurrentAppEnvFile}" ||
-            warn "Failed to remove temporary ${C["File"]}${appname}.env${NC} file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentAppEnvFile}\""
+            warn "Failed to remove temporary '${C["File"]}.env.app.${appname}${NC}' file.\nFailing command: ${C["FailingCommand"]}rm -f \"${CurrentAppEnvFile}\""
     fi
 }
 

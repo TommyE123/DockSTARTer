@@ -10,7 +10,7 @@ app_instance_folder() {
     # If the folder does not exist, it is created from the matching folder in the "templates" folder.
 
     local AppName=${1:-}
-    local appname=${AppName,,}
+    local -l appname=${AppName}
 
     local baseapp TemplateFolder InstanceFolder
     baseapp="$(run_script 'appname_to_baseappname' "${appname}")"
@@ -20,12 +20,12 @@ app_instance_folder() {
     echo "${InstanceFolder}"
     if [[ ! -d ${InstanceFolder} ]]; then
         if [[ ! -d ${TemplateFolder} ]]; then
-            warn "Folder ${C["Folder"]}${TemplateFolder}${NC} does not exist."
+            warn "Folder '${C["Folder"]}${TemplateFolder}${NC}' does not exist."
             return
         fi
         if [[ ! -d ${InstanceFolder} ]]; then
             mkdir -p "${InstanceFolder}" ||
-                fatal "Failed to create folder ${C["Folder"]}${InstanceFolder}${NC}. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceFolder}\""
+                fatal "Failed to create folder '${C["Folder"]}${InstanceFolder}${NC}'. Failing command: ${C["FailingCommand"]}mkdir -p \"${InstanceFolder}\""
             run_script 'set_permissions' "${InstanceFolder}"
         fi
     fi

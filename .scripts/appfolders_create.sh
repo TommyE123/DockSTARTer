@@ -3,12 +3,11 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 appfolders_create() {
-    local APPNAME=${1-}
-    APPNAME=${APPNAME^^}
-
-    local appname=${APPNAME,,}
+    local -u APPNAME=${1-}
+    local -l appname=${APPNAME}
     local AppName
     AppName="$(run_script 'app_nicename' "${APPNAME}")"
+
     local APP_FOLDERS_FILE
     APP_FOLDERS_FILE="$(run_script 'app_instance_file' "${appname}" "*.folders")"
 
@@ -26,10 +25,10 @@ appfolders_create() {
                 fi
             done
             if [[ -n ${FOLDERS_ARRAY[*]-} ]]; then
-                notice "Creating config folders for ${C["App"]}${AppName}${NC}."
+                notice "Creating config folders for '${C["App"]}${AppName}${NC}'."
                 for FOLDER in "${FOLDERS_ARRAY[@]-}"; do
-                    notice "Creating folder ${C["Folder"]}${FOLDER}${NC}"
-                    mkdir -p "${FOLDER}" || warn "Could not create folder ${C["Folder"]}${FOLDER}${NC}"
+                    notice "Creating folder '${C["Folder"]}${FOLDER}${NC}'"
+                    mkdir -p "${FOLDER}" || warn "Could not create folder '${C["Folder"]}${FOLDER}${NC}'"
                     if [[ -d ${FOLDER} ]]; then
                         run_script 'set_permissions' "${FOLDER}"
                     fi
